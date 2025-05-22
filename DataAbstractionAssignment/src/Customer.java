@@ -180,17 +180,15 @@ public class Customer {
                     break;
                 }
 
-                if (amount > balance) {
-                    String exceedBalance = rounder.format(amount - balance);
-                    System.out.println(this.name + ", your withdrawal amount for your " + account + " account " +
-                            "exceeds your current balance by $" + exceedBalance + ". The money has been withdrawn " +
-                            "and your balance is in the red.");
+                balance = Math.round((balance - amount) * 100.00) / 100.00;
+                withdraws.add(new Withdraw(amount, date, account, balance));
+
+                if (checkOverdraft(balance)) {
+                    System.out.println(this.name + ", your withdrawal exceeds your current balance for your " + account
+                            + " account. While the money has been withdrawn, you are -$" +
+                            rounder.format(balance * -1) + " in the red.");
                     this.overdraftCounter++;
                 }
-
-                balance = Math.round((balance - amount) * 100.00) / 100.00;
-
-                withdraws.add(new Withdraw(amount, date, account, balance));
 
                 if (account.equals(CHECKING)) {
                     this.checkingBalance = balance;
@@ -217,12 +215,13 @@ public class Customer {
         return overdraftCounter;
     }
 
-    /*
-    private boolean checkOverdraft(double amt, String account){
-        //your code here
-        return false;
+    // Requires: double amount > 0 with up to 2 decimal places with optional trailing zeroes, Date date, String account
+    // = CHECKING || SAVING
+    // Modifies: this
+    // Effects: Checks if a Customer's balance is less than 0 after a withdrawal
+    private boolean checkOverdraft(double amt){
+        return amt < 0;
     }
-    */
 
     //do not modify
     public void displayDeposits(){
