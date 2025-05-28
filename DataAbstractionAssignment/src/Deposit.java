@@ -29,7 +29,7 @@ public class Deposit {
     public String toString(){
         String negativeSign = "";
         String typedBalance;
-        if (balance > 0) {
+        if (balance >= 0) {
             typedBalance = rounder.format(balance);
         }
         else {

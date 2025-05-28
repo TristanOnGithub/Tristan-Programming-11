@@ -14,7 +14,7 @@ public class Customer {
     public static final String CHECKING = "Checking";
     public static final String SAVING = "Saving";
     private int overdraftCounter = 0;
-    //private final int overdraft = -100;
+    private final double overdraft = -100.0;
     private static final DecimalFormat rounder = new DecimalFormat("0.00");
     private boolean invalidAccountNumber = false;
     private boolean invalidCheckingBalance = false;
@@ -134,8 +134,8 @@ public class Customer {
     // Effects: Withdraws an amount greater than 0 with up to 2 decimal places with optional trailing zeroes from a
     // Customer's CHECKING or SAVING account and adds it and a date to ArrayList<Withdraw> withdraws. If the Customer's
     // account is invalid from its Construction, the withdrawal will not go through and a message will be sent to the
-    // console with the relevant reason. If the amount withdrawn is greater than the account's balance, a message is
-    // sent to the console and the withdrawal will go through.
+    // console with the relevant reason. If the account's balance is less than -$100, the Customer will not be able to
+    // withdraw
     public void withdraw(double amount, Date date, String account) {
 
         if (this.invalidAccountNumber) {
@@ -180,6 +180,26 @@ public class Customer {
                     break;
                 }
 
+                if (checkOverdraft(balance)) {
+                    System.out.println(this.name + ", your " + account + " account has less than -$100 and you " +
+                            "cannot withdraw any money.");
+                    break;
+                }
+
+                double newBalance = Math.round((balance - amount) * 100.00) / 100.00;
+                if (checkOverdraft(newBalance)) {
+                    System.out.println(this.name + ", your " + account + " account has less than -$100 and you " +
+                            "cannot withdraw any money.");
+                    amount = Math.round((balance - overdraft) * 100.00) / 100.00;
+                    withdraws.add(new Withdraw(amount, date, account, overdraft));
+
+                    switch (account) {
+                        case CHECKING -> this.checkingBalance = newBalance;
+                        case SAVING -> this.savingBalance = newBalance;
+                    }
+                    break;
+                }
+
                 balance = Math.round((balance - amount) * 100.00) / 100.00;
                 withdraws.add(new Withdraw(amount, date, account, balance));
 
@@ -218,9 +238,9 @@ public class Customer {
     // Requires: double amount > 0 with up to 2 decimal places with optional trailing zeroes, Date date, String account
     // = CHECKING || SAVING
     // Modifies: this
-    // Effects: Checks if a Customer's balance is less than 0 after a withdrawal
+    // Effects: Checks if a Customer's balance is less than -100 after a withdrawal
     private boolean checkOverdraft(double amt){
-        return amt < 0;
+        return amt <= overdraft;
     }
 
     //do not modify
